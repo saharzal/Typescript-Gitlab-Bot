@@ -1,65 +1,67 @@
-import axios from "axios";
+import { getBaleNicksByGitlabNicks } from "./constants";
+import { GitlabUser, MergeRequest } from "./types";
 
-export function get_merge_request_details(data: any) {
+export function getMergeRequestDetails(data: any): MergeRequest {
   const attributes = data.object_attributes;
   const title = attributes.title;
   const address = attributes.url;
   const description = attributes.description;
   const user = data.user;
-  const created_by = user.username;
   const reviewers = data.reviewers || [];
   const assignees = data.assignees || [];
 
   return {
-    title: title,
-    address: address,
-    description: description,
-    created_by: created_by,
+    id: attributes.id,
+    state: attributes.state,
+    title,
+    url: address,
+    description,
+    author: user,
     assignees: assignees,
     reviewers: reviewers,
+    branch: attributes.source_branch,
   };
 }
 
-export function get_user_string(user: any) {
-  return user.name + "  @" + user.username;
+export function getUserString(user: GitlabUser) {
+  return (
+    "@" + (getBaleNicksByGitlabNicks().get(user.username) ?? user.username)
+  );
 }
 
-export function get_merge_message(details: any) {
+export function getMergeMessage(mergeRequest: MergeRequest) {
   let message =
-    details.address +
-    "\nمرج‌دهنده: " +
-    details.created_by +
-    "\nعنوان: " +
-    details.title +
-    "\nتوضیحات: \n" +
-    details.description +
+    mergeRequest.url +
+    "\n" +
+    mergeRequest.title +
+    "\n*مرج‌دهنده:* " +
+    mergeRequest.author.username +
     "\n";
+
+  if (mergeRequest.description && mergeRequest.description.length > 0) {
+    message = message.concat("*توضیحات:* \n", mergeRequest.description, "\n");
+  }
   let reviewer_info = "";
-  for (const reviewer of details.reviewers) {
-    reviewer_info += get_user_string(reviewer) + "\n";
+  for (const reviewer of mergeRequest.reviewers) {
+    reviewer_info += getUserString(reviewer) + "\n";
   }
   if (reviewer_info.length > 0) {
-    message += "ریویوکنندگان: \n" + reviewer_info;
+    message += "*ریویوکنندگان:* \n" + reviewer_info;
   }
-  let assignees_info = "";
-  for (const assignee of details.assignees) {
-    assignees_info += get_user_string(assignee) + "\n";
+  // let assignees_info = "";
+  // for (const assignee of mergeRequest.assignees) {
+  //   assignees_info += getUserString(assignee) + "\n";
+  // }
+  // if (assignees_info.length > 0) {
+  //   message += "*اساین شده:* \n" + assignees_info;
+  // }
+  if (mergeRequest.state === "merged") {
+    message += "\n🎊 *مرج شد!* ";
+  } else if (mergeRequest.state === "closed") {
+    message += "\n❌ *بسته شد!*";
   }
-  if (assignees_info.length > 0) {
-    message += "اساین شدگان: \n" + assignees_info;
-  }
+
   return message;
 }
 
-export async function send_message(message: string) {
-  const options = {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    data: {
-      chat_id: "CHAT_ID",
-      text: message,
-    },
-    url: "https://tapi.bale.ai/bot{BALE_BOT_TOKEN_HERE}/sendMessage",
-  };
-  axios(options);
-}
+
