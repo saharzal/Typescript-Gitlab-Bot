@@ -38,15 +38,15 @@ export function getMergeMessage(mergeRequest: MergeRequest) {
     mergeRequest.author.username +
     "\n";
 
-  if (mergeRequest.description && mergeRequest.description.length > 0) {
-    message = message.concat("*توضیحات:* \n", mergeRequest.description, "\n");
-  }
   let reviewer_info = "";
   for (const reviewer of mergeRequest.reviewers) {
-    reviewer_info += getUserString(reviewer) + "\n";
+    reviewer_info += getUserString(reviewer) + "  ";
   }
   if (reviewer_info.length > 0) {
     message += "*ریویوکنندگان:* \n" + reviewer_info;
+  }
+  if (mergeRequest.description && mergeRequest.description.length > 0) {
+    message = message.concat("*توضیحات:* \n", mergeRequest.description, "\n");
   }
   // let assignees_info = "";
   // for (const assignee of mergeRequest.assignees) {
@@ -63,5 +63,3 @@ export function getMergeMessage(mergeRequest: MergeRequest) {
 
   return message;
 }
-
-

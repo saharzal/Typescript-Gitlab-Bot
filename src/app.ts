@@ -17,8 +17,7 @@ redisClient.connect();
 app.use(bodyParser.json());
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Hello From Gitlab Bot!");
-});
+  res.send("Hello From Gitlab Bot!");});
 
 app.post("/webhook", async (req: Request, res: Response) => {
   const data = req.body;
